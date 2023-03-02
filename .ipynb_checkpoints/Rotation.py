@@ -1,3 +1,4 @@
+import math
 from functools import partial
 
 import numpy as np
@@ -15,8 +16,9 @@ def main():
     # 3D axes so that we can plot 3D
     # data into it.
     ax = plt.axes(projection="3d")
-    anim = FuncAnimation(fig, animate, fargs=(ax, arr), frames=10, interval=20, repeat=True)
+    #anim = FuncAnimation(fig, animate, fargs=(ax, arr), frames=10, interval=20, repeat=False)
     #animate(0, ax, arr)
+    animate(3, ax, arr)
     plt.show()
 
 
@@ -31,6 +33,7 @@ def animate(i, ax, arr):
     y = [0, yi]
     zi = int(arr[i][2])/100
     z = [0, zi]
+    print(math.sqrt(xi*xi + yi*yi + zi*zi))
 
     quat_array = arr[i,3:7].astype(float)
     quat_array = quat_array / (16384-1) # Quaternion data ranges from 0-2^14-1.
@@ -44,9 +47,17 @@ def animate(i, ax, arr):
 
     final_vector = result.elements
 
-    x2 = [0, final_vector[0]]
-    y2 = [0, final_vector[1]]
-    z2 = [0, final_vector[2]]
+    # Try with rotation matricies:
+    accMtx = np.matrix([[xi], [yi], [zi]])
+    rotMtx = np.matrix(q.rotation_matrix)
+    result_rotmtx = rotMtx.T * accMtx
+    x2 = [0, result_rotmtx[0,0]]
+    y2 = [0, result_rotmtx[1,0]]
+    z2 = [0, result_rotmtx[2,0]]
+
+    #x2 = [0, final_vector[0]]
+    #y2 = [0, final_vector[1]]
+    #z2 = [0, final_vector[2]]
 
     ax.plot3D(x, y, z, 'red')
     ax.plot3D(x2, y2, z2, 'green')

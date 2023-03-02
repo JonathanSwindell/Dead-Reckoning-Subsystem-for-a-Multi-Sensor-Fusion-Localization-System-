@@ -1,5 +1,6 @@
-o0#include "BNO055_support.h"   //Contains the bridge code between the API and Arduino
+#include "BNO055_support.h"   //Contains the bridge code between the API and Arduino
 #include <Wire.h>
+#include "utility/imumaths.h"
 
 struct bno055_t myBNO;
 typedef struct bno055_Inertial_data_t{ 
@@ -78,7 +79,7 @@ void SerialPrintInertialData(bno055_Inertial_data_t bno055_Inertial_data){
     Serial.print(" z: ");  
     Serial.println(float(bno055_Inertial_data.QuatData.z));
 
-    /*
+    
     double newAccel[3] = {0.0, 0.0, 0.0};
     convertRotation(&bno055_Inertial_data, newAccel);
     Serial.print("Constant Accel: x: ");
@@ -87,17 +88,23 @@ void SerialPrintInertialData(bno055_Inertial_data_t bno055_Inertial_data){
     Serial.print(newAccel[1]);
     Serial.print(" z: ");
     Serial.println(newAccel[2]);
-    */
+    
     
 
 }
 
 void getInertialMeasurements(bno055_Inertial_data_t * bno055_Inertial_data){
+    static double quat_scale = (1.0 / (1 << 14));
     bno055_read_accel_xyz(&(bno055_Inertial_data->AccelData));  //Update Acceleration data into the structure
     bno055_read_gyro_xyz(&(bno055_Inertial_data->GyroData));    //Update Gyroscope data into the structure
     bno055_read_mag_xyz(&(bno055_Inertial_data->MagData));      //Update Magnetometer data into the structure
     bno055_read_euler_hrp(&(bno055_Inertial_data->EulerData));
     bno055_read_quaternion_wxyz(&(bno055_Inertial_data->QuatData));
+    //bno055_Inertial_data->QuatData.w = bno055_Inertial_data->QuatData.w * quat_scale;
+    //bno055_Inertial_data->QuatData.x = bno055_Inertial_data->QuatData.x * quat_scale;
+    //bno055_Inertial_data->QuatData.y = bno055_Inertial_data->QuatData.y * quat_scale;
+    //bno055_Inertial_data->QuatData.z = bno055_Inertial_data->QuatData.z * quat_scale;
+    
 }
 double dotProduct(int n, double* a, double* b) {
   double sum = 0.0;
@@ -107,6 +114,7 @@ double dotProduct(int n, double* a, double* b) {
   return sum;
 }
 void convertRotation(bno055_Inertial_data_t* bno, double* returnAccel) {
+  static double quat_scale = (1.0 / (1 << 14));
   // This function DOES NOT work. It attempts to use a rotation matrix to undo the rotation.
   double heading = ((double)bno->EulerData.h / 16.0) * 0.017453; // Convert to radians
   double roll = ((double)bno->EulerData.r  / 16.0) * 0.017453;
@@ -116,17 +124,30 @@ void convertRotation(bno055_Inertial_data_t* bno, double* returnAccel) {
   double ay = (double)bno->AccelData.y / 100.0;
   double az = (double)bno->AccelData.z / 100.0;
 
-  double xyz[3] = {ax, ay, az};
+    //multiplication of linear acceleration and quaternion
+  float tempQuat[4];
 
-  // One issue is that this is I think an incorrect rotation matrix
-  // Another issue is that the inverse needs to be used to undo the rotation
-  double R1[3] = {cos(heading)*cos(pitch), sin(heading)*cos(pitch), -1*sin(pitch)};
-  double R2[3] = {cos(heading)*sin(pitch)*sin(roll)-sin(heading)*cos(roll), sin(heading)*sin(pitch)*sin(roll) + cos(heading)*cos(roll), cos(pitch)*sin(roll)};
-  double R3[3] = {cos(heading)*sin(pitch)*cos(roll) + sin(heading)*sin(roll), sin(heading)*sin(pitch)*cos(roll)-cos(heading)*sin(roll), cos(pitch)*cos(roll)};
-  
-  returnAccel[0] = dotProduct(3, xyz, R1);
-  returnAccel[1] = dotProduct(3, xyz, R2);
-  returnAccel[2] = dotProduct(3, xyz, R3);
+  imu::Vector<3> euler = imu::Vector<3>(ax, ay, az);
+  imu::Quaternion quat = imu::Quaternion((double)bno->QuatData.w * quat_scale,
+                                        (double)bno->QuatData.y  * quat_scale,
+                                        (double)bno->QuatData.x  * quat_scale,
+                                        (double)bno->QuatData.z  * quat_scale);
+  //imu::Vector<3> euler = bno.getVector(Adafruit_BNO055::VECTOR_LINEARACCEL);
+  //imu::Quaternion quat = bno.getQuat();
+
+  //http://es.mathworks.com/help/aeroblks/quaternionmultiplication.html   q=quat, r=linAcc
+  tempQuat[0] = 0 - euler.x() * quat.x() - euler.y() * quat.y() - euler.z() * quat.z();
+  //Serial.print("tempquat[0]->");
+  //Serial.println(tempQuat[0]);
+  tempQuat[1] = 0 + euler.x() * quat.w() - euler.y() * quat.z() + euler.z() * quat.y();
+  tempQuat[2] = 0 + euler.x() * quat.z() + euler.y() * quat.w() - euler.z() * quat.x();
+  tempQuat[3] = 0 - euler.x() * quat.y() + euler.y() * quat.x() + euler.z() * quat.w();
+
+  //q=tempQuat, r=quatConj
+  returnAccel[0] = quat.w() * tempQuat[1] - quat.x() * tempQuat[0] + quat.y() * tempQuat[3] - quat.z() * tempQuat[2];
+  returnAccel[1] = quat.w() * tempQuat[2] + quat.x() * tempQuat[3] - quat.y() * tempQuat[0] + quat.z() * tempQuat[1];
+  returnAccel[2] = quat.w() * tempQuat[3] + quat.x() * tempQuat[2] - quat.y() * tempQuat[1] - quat.z() * tempQuat[0];
+  Serial.println(quat.w());
 }
 
 void setup() 
@@ -152,7 +173,7 @@ void loop() //This code is looped forever
     lastTime = millis();
 
     getInertialMeasurements(&bno055_Inertial_data);
-    rotDebug(bno055_Inertial_data);
-    //SerialPrintInertialData(bno055_Inertial_data);
+    //rotDebug(bno055_Inertial_data);
+    SerialPrintInertialData(bno055_Inertial_data);
   }
 }
