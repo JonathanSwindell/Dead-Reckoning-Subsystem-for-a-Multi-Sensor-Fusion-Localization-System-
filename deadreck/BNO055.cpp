@@ -239,12 +239,14 @@ void BNO055::deadReckoning(int mode){
     if(aX==0 && aY==0 && aZ==0) noAccCount++;   //If there is no accel in any axis set speed to 0
     else noAccCount=0;
 
+    /*
     if(noAccCount>noMovement){
         vXOld=0;
         vYOld=0;
         vZOld=0;
         noAccCount=0; //Stops the counter from overflowing
     }
+    */
 
     vX = vXOld + ( aXOld + ( aX - aXOld ) / 2.0 )*interval; //Area of rectangle:Sample(n-1) * t ,  Area of triangle:(Sample(n) - Sample(n-1)) * 0.5 * t
     vY = vYOld + ( aYOld + ( aY - aYOld ) / 2.0 )*interval;

@@ -10,7 +10,7 @@ bool stringComplete = false;  // whether the string is complete
 
 // Configuration stuff
 #define BAUD_RATE 9600
-#define SERIAL_RATE_DELAY 1000 // In ms
+#define SERIAL_RATE_DELAY 100 // In ms
 #define MODE_DEBUG
 
 void setup(){
@@ -39,7 +39,7 @@ void loop(){
     myBNO.deadReckoning(0);   //Uses local coordinates, x component of acceleration will be in the sensor's x axis
     if ((millis()- lastTime) > SERIAL_RATE_DELAY) {
       lastTime = millis();
-      Serial.print("Location X : "); Serial.print(myBNO.position.x); Serial.print(" Location Y: "); Serial.print(myBNO.position.y); Serial.print(" Location Z: "); Serial.println(myBNO.position.z);
+      Serial.print("Location(X,Y,Z):"); Serial.print(myBNO.position.x); Serial.print(","); Serial.print(myBNO.position.y); Serial.print(","); Serial.println(myBNO.position.z);
     }
 }
 
