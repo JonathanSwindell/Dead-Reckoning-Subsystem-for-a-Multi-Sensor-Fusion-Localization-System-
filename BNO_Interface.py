@@ -35,16 +35,19 @@ class BNO055Interface(threading.Thread):
                 print("No serial port")
             elif self.serialPort.in_waiting > 0:
                 # Read data out of the buffer until a carraige return / new line is found
-                serialString = self.serialPort.readline()
-
+                serialString = str(self.serialPort.readline().strip().decode('ascii'))
+                print(serialString)
                 # Write contents to output
                 try:
                     with self.logging_lock:
                         if self.is_logging:
                             if "Location(X,Y,Z):" in serialString:
-                                self.outfile.write(serialString[15:])
+                                t = time.localtime()
+                                current_time = time.strftime("%H:%M:%S", t)
+                                print(current_time, ",", serialString[16:],file=self.outfile)
                             else:
-                                print("FROM BNO:", serialString)
+                                pass
+                                #print("FROM BNO:", serialString)
                         else:
                             pass  # Maybe print here? idk
 
@@ -69,7 +72,7 @@ class BNO055Interface(threading.Thread):
     def reset_deadreck(self):
         print("Resetting the dead reckoning!")
         if self.serialPort is not None:
-            self.serialPort.write("r\n")  # Write reset command to serial
+            self.serialPort.write("r\n".encode())  # Write reset command to serial
 
     def stop(self):
         self.stop_event.set()
@@ -77,11 +80,13 @@ class BNO055Interface(threading.Thread):
 def test_BNO055Interface():
     bno = BNO055Interface()
     bno.start()
+    bno.start_logging("test.csv")
     try:
         while True:
             if input() == "r":
                 bno.reset_deadreck()
     except KeyboardInterrupt:
+        bno.stop_logging()
         bno.stop()
         bno.join()
     finally:

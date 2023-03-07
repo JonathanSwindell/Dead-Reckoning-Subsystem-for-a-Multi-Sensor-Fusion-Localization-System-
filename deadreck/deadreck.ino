@@ -10,7 +10,7 @@ bool stringComplete = false;  // whether the string is complete
 
 // Configuration stuff
 #define BAUD_RATE 9600
-#define SERIAL_RATE_DELAY 100 // In ms
+#define SERIAL_RATE_DELAY 1000 // In ms
 #define MODE_DEBUG
 
 void setup(){
