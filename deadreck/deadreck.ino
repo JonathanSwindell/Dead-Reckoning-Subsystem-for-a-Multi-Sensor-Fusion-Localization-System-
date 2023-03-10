@@ -3,6 +3,14 @@
 #define I2C_ADDR 0X28  //I2C address selection pin LOW
 #define B 0x29  //                          HIGH
 
+//+Y is North
+//-Y is South
+//+X is East
+//-X is West
+
+//TODO 
+//Add calibration status bits
+
 // Global variables
 BNO055 myBNO(I2C_ADDR); // Object for the BNO sensor
 String inputCommand = "";      // a String to hold incoming data
@@ -26,7 +34,7 @@ void loop(){
     //Read input from PC
     if (stringComplete) {
       Serial.print("Recived input: "); Serial.print(inputCommand);
-      if (inputCommand == "r\n") {
+      if (inputCommand == "r") {
         Serial.println("Resetting Dead Reckoning!");
         myBNO.resetDeadReckoning();
       }
@@ -44,14 +52,20 @@ void loop(){
 }
 
 void serialEvent() {
+  Serial.print("in serial event.");
+  
   while (Serial.available()) {
+      Serial.print("in serial while.");
+
     // get the new byte:
     char inChar = (char)Serial.read();
     // add it to the inputString:
     inputCommand += inChar;
     // if the incoming character is a newline, set a flag so the main loop can
     // do something about it:
-    if (inChar == '\n') {
+  Serial.print((int)inChar);
+    
+    if (inChar == 'r') {
       stringComplete = true;
     }
   }
