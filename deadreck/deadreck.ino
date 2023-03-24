@@ -46,23 +46,23 @@ void loop(){
     //Dead Reckoning
     myBNO.deadReckoning(0);   //Uses local coordinates, x component of acceleration will be in the sensor's x axis
 
-    //Atherton - Is there a reason this is done twice?
-    
-    myBNO.deadReckoning(0);   //Uses local coordinates, x component of acceleration will be in the sensor's x axis
-
     myBNO.readGyro();
     myBNO.readMag();
+    myBNO.readQuat();
+    myBNO.readEul();
+    myBNO.readLinAcc();
 
     //Serial.print(myBNO.readByte(I2C_ADDR,BNO055_CALIB_STAT);
 
 
     if ((millis()- lastTime) > SERIAL_RATE_DELAY) {
       lastTime = millis();
-      Serial.print("Location(X,Y,Z): "); Serial.print(myBNO.position.x); Serial.print(" , "); Serial.print(myBNO.position.y); Serial.print(" , "); Serial.print(myBNO.position.z); Serial.print(" , ");
-      Serial.print("Magnetic Feild Strength (X,Y,Z): "); Serial.print(myBNO.mag.x); Serial.print(" , "); Serial.print(myBNO.mag.y); Serial.print(" , "); Serial.print(myBNO.mag.z); Serial.print(" , ");
-      Serial.print("Gyroscope (X,Y,Z): "); Serial.print(myBNO.gyro.x); Serial.print(" , "); Serial.print(myBNO.gyro.y); Serial.print(" , "); Serial.print(myBNO.gyro.z);
-      Serial.print("\n");
-      
+      Serial.print("Location(X,Y,Z): "); Serial.print(myBNO.position.x); Serial.print(", "); Serial.print(myBNO.position.y); Serial.print(", "); Serial.println(myBNO.position.z);
+      Serial.print("MFS (X,Y,Z): "); Serial.print(myBNO.mag.x); Serial.print(", "); Serial.print(myBNO.mag.y); Serial.print(", "); Serial.println(myBNO.mag.z);
+      Serial.print("Gyroscope (X,Y,Z): "); Serial.print(myBNO.gyro.x); Serial.print(", "); Serial.print(myBNO.gyro.y); Serial.print(", "); Serial.println(myBNO.gyro.z);
+      Serial.print("Quat (x,y,z,w): "); Serial.print(myBNO.quat.q0); Serial.print(", "); Serial.print(myBNO.quat.q1); Serial.print(", "); Serial.print(myBNO.quat.q2); Serial.print(", "); Serial.println(myBNO.quat.q3);
+      Serial.print("LinAccel (x,y,z): "); Serial.print(myBNO.linAcc.x); Serial.print(", "); Serial.print(myBNO.linAcc.y); Serial.print(", "); Serial.println(myBNO.linAcc.z);
+      Serial.print("Euler (x,y,z): "); Serial.print(myBNO.euler.x); Serial.print(", "); Serial.print(myBNO.euler.y); Serial.print(", "); Serial.println(myBNO.euler.z);
       
     }
 }

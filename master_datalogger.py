@@ -1,4 +1,4 @@
-import serial
+import BNO_Interface
 import logging.config
 import threading
 import time
@@ -172,109 +172,10 @@ class bleServer:
                     break
 
     def stop(self):
-            # Disconnecting bluetooth sockets
-            self.closeBluetoothSocket()
+        # Disconnecting bluetooth sockets
+        self.closeBluetoothSocket()
 
 
-class BNO055Interface(threading.Thread):
-    __instance = None
-
-    def __new__(cls):
-        if cls.__instance is None:
-            cls.__instance = super(BNO055Interface, cls).__new__(cls)
-        return cls.__instance
-
-    def __init__(self):
-        super(BNO055Interface, self).__init__()
-
-        try:
-            self.serialPort = serial.Serial(port=BNO_PORT, baudrate=BAUD_RATE)
-        except:
-            print("Error in BNO055Interface. Unable to open serialPort")
-            self.serialPort = None
-
-        while self.serialPort is None:
-            try:
-                self.serialPort = serial.Serial(port=BNO_PORT, baudrate=BAUD_RATE)
-            except:
-                print("Error in BNO055Interface. Unable to open serialPort")
-                self.serialPort = None
-            time.sleep(5)
-        self.xpos = 0.0
-        self.ypos = 0.0
-        self.zpos = 0.0
-        self.is_logging = False
-        self.outfile = None
-        self.logging_lock = threading.Lock()
-        self.stop_event = threading.Event()
-
-    def run(self):
-        while not self.stop_event.is_set():
-            if self.serialPort is None:
-                time.sleep(5)
-                print("No serial port")
-            elif self.serialPort.in_waiting > 0:
-                # Read data out of the buffer until a carraige return / new line is found
-                serialString = str(self.serialPort.readline().strip().decode('ascii'))
-                # print(serialString)
-                # Write contents to output
-                try:
-                    with self.logging_lock:
-                        if self.is_logging:
-                            if "Location(X,Y,Z):" in serialString:
-                                t = time.localtime()
-                                current_time = time.strftime("%H:%M:%S", t)
-                                # print(current_time, ",", serialString[16:], file=self.outfile)
-                                global current_BNO_data;
-                                current_BNO_data = current_time + "," + serialString[16:]
-                            else:
-                                pass
-                                # print("FROM BNO:", serialString)
-                        else:
-                            pass  # Maybe print here? idk
-
-                except:
-                    pass
-
-    def start_logging(self, filename):
-        with self.logging_lock:
-            print("Starting Logging!")
-            self.outfile = open(filename, 'w')
-            self.is_logging = True
-
-    def stop_logging(self):
-        with self.logging_lock:
-            print("Stopping Logging!")
-            if self.outfile is not None:
-                self.outfile.close()
-
-    def get_position(self):
-        return self.xpos, self.ypos, self.zpos  # TODO: update xpos,ypos,zpos in run()
-
-    def reset_deadreck(self):
-        print("Resetting the dead reckoning!")
-        if self.serialPort is not None:
-            self.serialPort.write("r\n".encode())  # Write reset command to serial
-
-    def stop(self):
-        self.stop_event.set()
-
-
-def test_BNO055Interface():
-    bno = BNO055Interface()
-    bno.start()
-    bno.start_logging("test.csv")
-    try:
-        while True:
-            if input() == "r":
-                bno.reset_deadreck()
-    except KeyboardInterrupt:
-        bno.stop_logging()
-        bno.stop()
-        bno.join()
-    finally:
-        bno.stop()
-        bno.join()
 
 def blueSvrWork():
     startLogging()
@@ -286,21 +187,24 @@ def blueSvrWork():
 if __name__ == '__main__':
     x = threading.Thread(target=blueSvrWork)
     x.start()
-    y = threading.Thread(target=test_BNO055Interface)
-    y.start()
+    # y = threading.Thread(target=test_BNO055Interface)
+    # y.start()
 
-    count = 0
-    ## Needs to be modified
-    for path in os.listdir('/'):
-        # check if current path is a file
-        if os.path.isfile(os.path.join('/', path)):
-            count += 1
+    bno = BNO_Interface.BNO055Interface()
+    bno.start()
+    current_time = time.strftime("%M_%d_%H_%M", time.localtime())
 
-    outfile = open("trail" + str(count) + '.csv', 'w')
-
-    while(True):
-        time.sleep(1)
-        t = time.localtime()
-        current_time = time.strftime("%H:%M:%S", t)
-        print(current_time + " Most Recent BNO Data " + current_BNO_data + " Most Recent BNO Data " + current_location)
-        print(current_time + " Most Recent BNO Data " + current_BNO_data + " Most Recent BNO Data " + current_location, file=outfile)
+    outfile = open("trail" + str(current_time) + '.csv', 'w')
+    try:
+        while(True):
+            time.sleep(1)
+            t = time.localtime()
+            current_time = time.strftime("%H:%M:%S", t)
+            print(current_time + " Most Recent BNO Data " + bno.get_csv_line() + " Most Recent GPS Data " + current_location)
+            print(bno.get_csv_line(), ",", current_location, file=outfile)
+    except KeyboardInterrupt:
+        print("I was called!")
+        outfile.close()
+        x.join()
+        print("hiya")
+        bno.stop()

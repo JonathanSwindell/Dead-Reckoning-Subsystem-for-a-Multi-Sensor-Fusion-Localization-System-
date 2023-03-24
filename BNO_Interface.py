@@ -27,6 +27,13 @@ class BNO055Interface(threading.Thread):
         self.outfile = None
         self.logging_lock = threading.Lock()
         self.stop_event = threading.Event()
+        self.csv_lock = threading.Lock()
+
+        self.euler = ""
+        self.linAccel = ""
+        self.gyro = ""
+        self.mag = ""
+        self.quat = ""
 
     def run(self):
         while not self.stop_event.is_set():
@@ -36,7 +43,22 @@ class BNO055Interface(threading.Thread):
             elif self.serialPort.in_waiting > 0:
                 # Read data out of the buffer until a carraige return / new line is found
                 serialString = str(self.serialPort.readline().strip().decode('ascii'))
-                print(serialString)
+                # print(serialString)
+                if "MFS (X,Y,Z): " in serialString:
+                    with self.csv_lock:
+                        self.mag = serialString[13:]
+                elif "Gyroscope (X,Y,Z): " in serialString:
+                    with self.csv_lock:
+                        self.gyro = serialString[19:]
+                elif "Quat (x,y,z,w): " in serialString:
+                    with self.csv_lock:
+                        self.quat = serialString[16:]
+                elif "LinAccel (x,y,z): " in serialString:
+                    with self.csv_lock:
+                        self.linAccel = serialString[18:]
+                elif "Euler (x,y,z): " in serialString:
+                    with self.csv_lock:
+                        self.euler = serialString[15:0]
                 # Write contents to output
                 try:
                     with self.logging_lock:
@@ -69,6 +91,10 @@ class BNO055Interface(threading.Thread):
     def get_position(self):
         return self.xpos, self.ypos, self.zpos  # TODO: update xpos,ypos,zpos in run()
 
+    def get_csv_line(self):
+        with self.csv_lock:
+            return self.mag + "," + self.gyro + "," + self.quat + "," + self.linAccel + "," + self.euler
+
     def reset_deadreck(self):
         print("Resetting the dead reckoning!")
         if self.serialPort is not None:
@@ -77,14 +103,20 @@ class BNO055Interface(threading.Thread):
     def stop(self):
         self.stop_event.set()
 
+    def __del__(self):
+        self.stop()
+
 def test_BNO055Interface():
     bno = BNO055Interface()
     bno.start()
-    bno.start_logging("test.csv")
+    #bno.start_logging("test.csv")
+
     try:
         while True:
-            if input() == "r":
-                bno.reset_deadreck()
+            time.sleep(1)
+            print(bno.get_csv_line())
+            #if input() == "r":
+            #    bno.reset_deadreck()
     except KeyboardInterrupt:
         bno.stop_logging()
         bno.stop()
