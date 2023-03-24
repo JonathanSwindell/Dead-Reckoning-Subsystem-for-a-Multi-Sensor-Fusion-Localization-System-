@@ -45,9 +45,25 @@ void loop(){
     
     //Dead Reckoning
     myBNO.deadReckoning(0);   //Uses local coordinates, x component of acceleration will be in the sensor's x axis
+
+    //Atherton - Is there a reason this is done twice?
+    
+    myBNO.deadReckoning(0);   //Uses local coordinates, x component of acceleration will be in the sensor's x axis
+
+    myBNO.readGyro();
+    myBNO.readMag();
+
+    //Serial.print(myBNO.readByte(I2C_ADDR,BNO055_CALIB_STAT);
+
+
     if ((millis()- lastTime) > SERIAL_RATE_DELAY) {
       lastTime = millis();
-      Serial.print("Location(X,Y,Z):"); Serial.print(myBNO.position.x); Serial.print(","); Serial.print(myBNO.position.y); Serial.print(","); Serial.println(myBNO.position.z);
+      Serial.print("Location(X,Y,Z): "); Serial.print(myBNO.position.x); Serial.print(" , "); Serial.print(myBNO.position.y); Serial.print(" , "); Serial.print(myBNO.position.z); Serial.print(" , ");
+      Serial.print("Magnetic Feild Strength (X,Y,Z): "); Serial.print(myBNO.mag.x); Serial.print(" , "); Serial.print(myBNO.mag.y); Serial.print(" , "); Serial.print(myBNO.mag.z); Serial.print(" , ");
+      Serial.print("Gyroscope (X,Y,Z): "); Serial.print(myBNO.gyro.x); Serial.print(" , "); Serial.print(myBNO.gyro.y); Serial.print(" , "); Serial.print(myBNO.gyro.z);
+      Serial.print("\n");
+      
+      
     }
 }
 

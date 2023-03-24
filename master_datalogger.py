@@ -1,0 +1,306 @@
+import serial
+import logging.config
+import threading
+import time
+import logging
+import logging.config
+import json # Uses JSON package
+import _pickle as pickle # Serializing and de-serializing a Python object structure
+from bluetooth import * # Python Bluetooth library
+
+BNO_PORT = "COM6"
+BAUD_RATE = 9600
+
+current_location = ""
+current_BNO_data = ""
+
+logger = logging.getLogger('bleServerLogger')
+
+def startLogging(
+    default_path='configLogger.json',
+    default_level=logging.INFO,
+    env_key='LOG_CFG'
+):
+    # Setup logging configuration
+    path = default_path
+    value = os.getenv(env_key, None)
+    if value:
+        path = value
+    if os.path.exists(path):
+        with open(path, 'rt') as f:
+            config = json.load(f)
+        logging.config.dictConfig(config)
+    else:
+        logging.basicConfig(level=default_level)
+
+class bleServer:
+    def __init__(self, serverSocket=None, clientSocket=None):
+        if serverSocket is None:
+            self.dataObj = None
+            self.serverSocket = serverSocket
+            self.clientSocket = clientSocket
+            self.serviceName="BluetoothServices"
+            self.jsonFile ="text.json"
+            self.uuid = "fa87c0d0-afac-11de-8a39-0800200c9a66"
+        else:
+            self.serverSocket = serverSocket
+            self.clientSocket = clientSocket
+
+    def getBluetoothSocket(self):
+        try:
+            self.serverSocket=BluetoothSocket( RFCOMM )
+            logger.info("Bluetooth server socket successfully created for RFCOMM service...")
+        except (BluetoothError, SystemExit, KeyboardInterrupt) as e:
+            logger.error("Failed to create the bluetooth server socket ", exc_info=True)
+
+    def getBluetoothConnection(self):
+        try:
+            self.serverSocket.bind(("",PORT_ANY))
+            logger.info("Bluetooth server socket bind successfully on host "" to PORT_ANY...")
+        except (Exception, BluetoothError, SystemExit, KeyboardInterrupt) as e:
+            logger.error("Failed to bind server socket on host to PORT_ANY ... ", exc_info=True)
+        try:
+            self.serverSocket.listen(1)
+            logger.info("Bluetooth server socket put to listening mode successfully ...")
+        except (Exception, BluetoothError, SystemExit, KeyboardInterrupt) as e:
+            logger.error("Failed to put server socket to listening mode  ... ", exc_info=True)
+        try:
+            port=self.serverSocket.getsockname()[1]
+            logger.info("Waiting for connection on RFCOMM channel %d" % (port))
+        except (Exception, BluetoothError, SystemExit, KeyboardInterrupt) as e:
+            logger.error("Failed to get connection on RFCOMM channel  ... ", exc_info=True)
+
+    def advertiseBluetoothService(self):
+        try:
+            advertise_service( self.serverSocket, self.serviceName,
+                            service_id = self.uuid,
+                            service_classes = [ self.uuid, SERIAL_PORT_CLASS ],
+                            profiles = [ SERIAL_PORT_PROFILE ],
+        #                   protocols = [ OBEX_UUID ]
+                            )
+            logger.info("%s advertised successfully ..." % (self.serviceName))
+        except (Exception, BluetoothError, SystemExit, KeyboardInterrupt) as e:
+            logger.error("Failed to advertise bluetooth services  ... ", exc_info=True)
+
+    def acceptBluetoothConnection(self):
+        try:
+            self.clientSocket, clientInfo = self.serverSocket.accept()
+            logger.info("Accepted bluetooth connection from %s", clientInfo)
+        except (Exception, BluetoothError, SystemExit, KeyboardInterrupt) as e:
+            logger.error("Failed to accept bluetooth connection ... ", exc_info=True)
+
+    def recvData(self):
+        try:
+            while True:
+                data= self.clientSocket.recv(1024)
+                if not data:
+                    self.clientSocket.send("EmptyBufferResend")
+                # remove the length bytes from the front of buffer
+                # leave any remaining bytes in the buffer!
+                dataSizeStr, ignored, data = data.partition(':')
+                dataSize = int(dataSizeStr)
+                if len(data) < dataSize:
+                    self.clientSocket.send("CorruptedBufferResend")
+                else:
+                    self.clientSocket.send("DataRecived")
+                    break
+            logger.info("Data received successfully over bluetooth connection")
+            return data
+        except (Exception, IOError, BluetoothError) as e:
+            pass
+
+    def deserializedData(self, _dataRecv):
+        try:
+            # print(_dataRecv)
+            self.dataObj=pickle.loads(_dataRecv)
+            logger.info("Serialized string converted successfully to object")
+        except (Exception, pickle.UnpicklingError) as e:
+            logger.error("Failed to de-serialized string ... ", exc_info=True)
+            # print("Oh NO!!")
+
+    def writeJsonFile(self):
+        try:
+            # Open a file for writing
+            jsonFileObj = open(self.jsonFile,"w")
+            logger.info("%s file successfully opened to %s" % (self.jsonFile, jsonFileObj))
+            # Save the dictionary into this file
+            # (the 'indent=4' is optional, but makes it more readable)
+            json.dump(self.dataObj,jsonFileObj, indent=4)
+            logger.info("Content dumped successfully to the %s file" %(self.jsonFile))
+            # Close the file
+            jsonFileObj.close()
+            logger.info("%s file successfully closed" %(self.jsonFile))
+        except (Exception, IOError) as e:
+            logger.error("Failed to write json contents to the file ... ", exc_info=True)
+
+    def closeBluetoothSocket(self):
+        try:
+            self.clientSocket.close()
+            self.serverSocket.close()
+            logger.info("Bluetooth sockets successfully closed ...")
+        except (Exception, BluetoothError) as e:
+            logger.error("Failed to close the bluetooth sockets ", exc_info=True)
+
+    def start(self):
+            # Create the server socket
+            self.getBluetoothSocket()
+            # get bluetooth connection to port # of the first available
+            self.getBluetoothConnection()
+            # advertising bluetooth services
+            self.advertiseBluetoothService()
+            # Accepting bluetooth connection
+            self.acceptBluetoothConnection()
+
+    def receive(self):
+            # receive data
+            dataRecv=self.recvData()
+            print("received " + str(dataRecv))
+            # de-serializing data
+            self.deserializedData(dataRecv)
+            # Writing json object to the file
+            self.writeJsonFile()
+            while True:
+                try:
+                    data = self.clientSocket.recv(1024)
+                    if not data:
+                        break
+                    print("Received:", data.decode())
+                    global current_location
+                    current_location = data.decode()
+                except (Exception, IOError) as e:
+                    print("Bluetooth connection error:", e)
+                    break
+
+    def stop(self):
+            # Disconnecting bluetooth sockets
+            self.closeBluetoothSocket()
+
+
+class BNO055Interface(threading.Thread):
+    __instance = None
+
+    def __new__(cls):
+        if cls.__instance is None:
+            cls.__instance = super(BNO055Interface, cls).__new__(cls)
+        return cls.__instance
+
+    def __init__(self):
+        super(BNO055Interface, self).__init__()
+
+        try:
+            self.serialPort = serial.Serial(port=BNO_PORT, baudrate=BAUD_RATE)
+        except:
+            print("Error in BNO055Interface. Unable to open serialPort")
+            self.serialPort = None
+
+        while self.serialPort is None:
+            try:
+                self.serialPort = serial.Serial(port=BNO_PORT, baudrate=BAUD_RATE)
+            except:
+                print("Error in BNO055Interface. Unable to open serialPort")
+                self.serialPort = None
+            time.sleep(5)
+        self.xpos = 0.0
+        self.ypos = 0.0
+        self.zpos = 0.0
+        self.is_logging = False
+        self.outfile = None
+        self.logging_lock = threading.Lock()
+        self.stop_event = threading.Event()
+
+    def run(self):
+        while not self.stop_event.is_set():
+            if self.serialPort is None:
+                time.sleep(5)
+                print("No serial port")
+            elif self.serialPort.in_waiting > 0:
+                # Read data out of the buffer until a carraige return / new line is found
+                serialString = str(self.serialPort.readline().strip().decode('ascii'))
+                # print(serialString)
+                # Write contents to output
+                try:
+                    with self.logging_lock:
+                        if self.is_logging:
+                            if "Location(X,Y,Z):" in serialString:
+                                t = time.localtime()
+                                current_time = time.strftime("%H:%M:%S", t)
+                                # print(current_time, ",", serialString[16:], file=self.outfile)
+                                global current_BNO_data;
+                                current_BNO_data = current_time + "," + serialString[16:]
+                            else:
+                                pass
+                                # print("FROM BNO:", serialString)
+                        else:
+                            pass  # Maybe print here? idk
+
+                except:
+                    pass
+
+    def start_logging(self, filename):
+        with self.logging_lock:
+            print("Starting Logging!")
+            self.outfile = open(filename, 'w')
+            self.is_logging = True
+
+    def stop_logging(self):
+        with self.logging_lock:
+            print("Stopping Logging!")
+            if self.outfile is not None:
+                self.outfile.close()
+
+    def get_position(self):
+        return self.xpos, self.ypos, self.zpos  # TODO: update xpos,ypos,zpos in run()
+
+    def reset_deadreck(self):
+        print("Resetting the dead reckoning!")
+        if self.serialPort is not None:
+            self.serialPort.write("r\n".encode())  # Write reset command to serial
+
+    def stop(self):
+        self.stop_event.set()
+
+
+def test_BNO055Interface():
+    bno = BNO055Interface()
+    bno.start()
+    bno.start_logging("test.csv")
+    try:
+        while True:
+            if input() == "r":
+                bno.reset_deadreck()
+    except KeyboardInterrupt:
+        bno.stop_logging()
+        bno.stop()
+        bno.join()
+    finally:
+        bno.stop()
+        bno.join()
+
+def blueSvrWork():
+    startLogging()
+    bleSvr = bleServer()
+    bleSvr.start()
+    bleSvr.receive()
+    bleSvr.stop()
+
+if __name__ == '__main__':
+    x = threading.Thread(target=blueSvrWork)
+    x.start()
+    y = threading.Thread(target=test_BNO055Interface)
+    y.start()
+
+    count = 0
+    ## Needs to be modified
+    for path in os.listdir('/'):
+        # check if current path is a file
+        if os.path.isfile(os.path.join('/', path)):
+            count += 1
+
+    outfile = open("trail" + str(count) + '.csv', 'w')
+
+    while(True):
+        time.sleep(1)
+        t = time.localtime()
+        current_time = time.strftime("%H:%M:%S", t)
+        print(current_time + " Most Recent BNO Data " + current_BNO_data + " Most Recent BNO Data " + current_location)
+        print(current_time + " Most Recent BNO Data " + current_BNO_data + " Most Recent BNO Data " + current_location, file=outfile)
