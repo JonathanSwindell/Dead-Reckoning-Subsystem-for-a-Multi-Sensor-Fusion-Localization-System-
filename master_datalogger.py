@@ -197,7 +197,7 @@ if __name__ == '__main__':
     outfile = open("trail" + str(current_time) + '.csv', 'w')
     try:
         while(True):
-            time.sleep(1)
+            time.sleep(0.01)
             t = time.localtime()
             current_time = time.strftime("%H:%M:%S", t)
             print(current_time + " Most Recent BNO Data " + bno.get_csv_line() + " Most Recent GPS Data " + current_location)
