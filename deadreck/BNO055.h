@@ -136,12 +136,28 @@
 #define BNO055_GYR_AM_THRESH    0x1E
 #define BNO055_GYR_AM_SET       0x1F
 
+/*Mag_Calib status register*/
+#define BNO055_MAG_CALIB_STAT__POS             0
+#define BNO055_MAG_CALIB_STAT__MSK             0X03
+
+/*Acc_Calib status register*/
+#define BNO055_ACC_CALIB_STAT__POS             2
+#define BNO055_ACC_CALIB_STAT__MSK             0X0C
+
+/*Gyro_Calib status register*/
+#define BNO055_GYR_CALIB_STAT__POS             4
+#define BNO055_GYR_CALIB_STAT__MSK             0X30
+
+/*Sys_Calib status register*/
+#define BNO055_SYS_CALIB_STAT__POS             6
+#define BNO055_SYS_CALIB_STAT__MSK             0XC0
 
 class BNO055{
 
 	public:
 		BNO055(uint8_t);
 		void init();
+    void readCalibrationStatus();
 		void readEul();
 		void readQuat();
 		void readAccel();
@@ -225,6 +241,10 @@ class BNO055{
 
 		Temp temp;
 
+    uint8_t sysSta;
+    uint8_t gyroSta;
+    uint8_t accelSta;
+    uint8_t magSta;
 
 
 

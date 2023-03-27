@@ -8,9 +8,6 @@
 //+X is East
 //-X is West
 
-//TODO 
-//Add calibration status bits
-
 // Global variables
 BNO055 myBNO(I2C_ADDR); // Object for the BNO sensor
 String inputCommand = "";      // a String to hold incoming data
@@ -18,7 +15,7 @@ bool stringComplete = false;  // whether the string is complete
 
 // Configuration stuff
 #define BAUD_RATE 9600
-#define SERIAL_RATE_DELAY 10 // In ms
+#define SERIAL_RATE_DELAY 10 // In ms // 100Hz Sampling Frequency
 #define MODE_DEBUG
 
 void setup(){
@@ -52,7 +49,21 @@ void loop(){
     myBNO.readEul();
     myBNO.readLinAcc();
 
-    //Serial.print(myBNO.readByte(I2C_ADDR,BNO055_CALIB_STAT);
+
+    myBNO.readCalibrationStatus();
+    Serial.print("Calibration\nSystem Status ");
+    Serial.println(myBNO.sysSta);
+
+    Serial.print("gyro Status ");
+    Serial.println(myBNO.gyroSta);
+
+    Serial.print("accelSta Status ");
+    Serial.println(myBNO.accelSta);
+
+    Serial.print("magSta Status ");
+    Serial.println(myBNO.magSta);
+
+    //Add some control
 
 
     if ((millis()- lastTime) > SERIAL_RATE_DELAY) {

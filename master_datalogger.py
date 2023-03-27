@@ -201,10 +201,10 @@ if __name__ == '__main__':
             t = time.localtime()
             current_time = time.strftime("%H:%M:%S", t)
             print(current_time + " Most Recent BNO Data " + bno.get_csv_line() + " Most Recent GPS Data " + current_location)
-            print(bno.get_csv_line(), ",", current_location, file=outfile)
+            print(current_time, "," , bno.get_csv_line(), ",", current_location, file=outfile)
     except KeyboardInterrupt:
-        print("I was called!")
+        #print("Keyboard Interrupt debug 1")
         outfile.close()
         x.join()
-        print("hiya")
+        #print("Keyboard Interrupt debug 2")
         bno.stop()
