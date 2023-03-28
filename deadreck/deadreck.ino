@@ -65,7 +65,6 @@ void loop(){
 
     //Add some control
 
-
     if ((millis()- lastTime) > SERIAL_RATE_DELAY) {
       lastTime = millis();
       Serial.print("Location(X,Y,Z): "); Serial.print(myBNO.position.x); Serial.print(", "); Serial.print(myBNO.position.y); Serial.print(", "); Serial.println(myBNO.position.z);
