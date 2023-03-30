@@ -14,7 +14,7 @@ String inputCommand = "";      // a String to hold incoming data
 bool stringComplete = false;  // whether the string is complete
 
 // Configuration stuff
-#define BAUD_RATE 9600
+#define BAUD_RATE 115200
 #define SERIAL_RATE_DELAY 10 // In ms // 100Hz Sampling Frequency
 #define MODE_DEBUG
 
@@ -67,12 +67,12 @@ void loop(){
 
     if ((millis()- lastTime) > SERIAL_RATE_DELAY) {
       lastTime = millis();
-      Serial.print("Location(X,Y,Z): "); Serial.print(myBNO.position.x); Serial.print(", "); Serial.print(myBNO.position.y); Serial.print(", "); Serial.println(myBNO.position.z);
-      Serial.print("MFS (X,Y,Z): "); Serial.print(myBNO.mag.x); Serial.print(", "); Serial.print(myBNO.mag.y); Serial.print(", "); Serial.println(myBNO.mag.z);
-      Serial.print("Gyroscope (X,Y,Z): "); Serial.print(myBNO.gyro.x); Serial.print(", "); Serial.print(myBNO.gyro.y); Serial.print(", "); Serial.println(myBNO.gyro.z);
-      Serial.print("Quat (x,y,z,w): "); Serial.print(myBNO.quat.q0); Serial.print(", "); Serial.print(myBNO.quat.q1); Serial.print(", "); Serial.print(myBNO.quat.q2); Serial.print(", "); Serial.println(myBNO.quat.q3);
-      Serial.print("LinAccel (x,y,z): "); Serial.print(myBNO.linAcc.x); Serial.print(", "); Serial.print(myBNO.linAcc.y); Serial.print(", "); Serial.println(myBNO.linAcc.z);
-      Serial.print("Euler (x,y,z): "); Serial.print(myBNO.euler.x); Serial.print(", "); Serial.print(myBNO.euler.y); Serial.print(", "); Serial.println(myBNO.euler.z);
+      Serial.print("L:"); Serial.print(myBNO.position.x); Serial.print(", "); Serial.print(myBNO.position.y); Serial.print(", "); Serial.println(myBNO.position.z);
+      Serial.print("M:"); Serial.print(myBNO.mag.x); Serial.print(", "); Serial.print(myBNO.mag.y); Serial.print(", "); Serial.println(myBNO.mag.z);
+      Serial.print("G:"); Serial.print(myBNO.gyro.x); Serial.print(", "); Serial.print(myBNO.gyro.y); Serial.print(", "); Serial.println(myBNO.gyro.z);
+      Serial.print("Q:"); Serial.print(myBNO.quat.q0); Serial.print(", "); Serial.print(myBNO.quat.q1); Serial.print(", "); Serial.print(myBNO.quat.q2); Serial.print(", "); Serial.println(myBNO.quat.q3);
+      Serial.print("L:"); Serial.print(myBNO.linAcc.x); Serial.print(", "); Serial.print(myBNO.linAcc.y); Serial.print(", "); Serial.println(myBNO.linAcc.z);
+      Serial.print("E:"); Serial.print(myBNO.euler.x); Serial.print(", "); Serial.print(myBNO.euler.y); Serial.print(", "); Serial.println(myBNO.euler.z);
       
     }
 }

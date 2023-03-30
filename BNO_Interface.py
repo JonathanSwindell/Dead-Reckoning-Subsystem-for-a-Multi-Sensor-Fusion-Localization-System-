@@ -16,7 +16,7 @@ class BNO055Interface(threading.Thread):
     def __init__(self):
         super(BNO055Interface, self).__init__()
         try:
-            self.serialPort = serial.Serial(port=BNO_PORT, baudrate=9600)
+            self.serialPort = serial.Serial(port=BNO_PORT, baudrate=115200)
         except:
             print("Error in BNO055Interface. Unable to open serialPort")
             self.serialPort = None
@@ -29,11 +29,11 @@ class BNO055Interface(threading.Thread):
         self.stop_event = threading.Event()
         self.csv_lock = threading.Lock()
 
-        self.euler = ""
-        self.linAccel = ""
-        self.gyro = ""
-        self.mag = ""
-        self.quat = ""
+        self.euler = "e,e,e"
+        self.linAccel = "la,la,la"
+        self.gyro = "g,g,g"
+        self.mag = "m,m,m"
+        self.quat = "q,q,q,q"
 
     def run(self):
         while not self.stop_event.is_set():
@@ -44,21 +44,21 @@ class BNO055Interface(threading.Thread):
                 # Read data out of the buffer until a carraige return / new line is found
                 serialString = str(self.serialPort.readline().strip().decode('ascii'))
                 # print(serialString)
-                if "MFS (X,Y,Z): " in serialString:
+                if "M:" in serialString:
                     with self.csv_lock:
-                        self.mag = serialString[13:]
-                elif "Gyroscope (X,Y,Z): " in serialString:
+                        self.mag = serialString[2:]
+                elif "G:" in serialString:
                     with self.csv_lock:
-                        self.gyro = serialString[19:]
-                elif "Quat (x,y,z,w): " in serialString:
+                        self.gyro = serialString[2:]
+                elif "Q:" in serialString:
                     with self.csv_lock:
-                        self.quat = serialString[16:]
-                elif "LinAccel (x,y,z): " in serialString:
+                        self.quat = serialString[2:]
+                elif "L:" in serialString:
                     with self.csv_lock:
-                        self.linAccel = serialString[18:]
-                elif "Euler (x,y,z): " in serialString:
+                        self.linAccel = serialString[2:]
+                elif "E:" in serialString:
                     with self.csv_lock:
-                        self.euler = serialString[15:0]
+                        self.euler = serialString[2:]
                 # Write contents to output
                 try:
                     with self.logging_lock:
@@ -94,6 +94,9 @@ class BNO055Interface(threading.Thread):
     def get_csv_line(self):
         with self.csv_lock:
             return self.mag + "," + self.gyro + "," + self.quat + "," + self.linAccel + "," + self.euler
+
+    def get_csv_header(self):
+        return "mag x, mag y, mag z, gyro x, gyro y, gyro z, quat x, quat y, quat z, quat w, linAcc x, linAcc y, linAcc z, Euler x, Euler y, Euler z"
 
     def reset_deadreck(self):
         print("Resetting the dead reckoning!")

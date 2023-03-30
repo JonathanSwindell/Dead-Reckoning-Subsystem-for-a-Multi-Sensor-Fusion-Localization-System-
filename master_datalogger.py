@@ -9,7 +9,7 @@ import _pickle as pickle # Serializing and de-serializing a Python object struct
 from bluetooth import * # Python Bluetooth library
 
 BNO_PORT = "COM6"
-BAUD_RATE = 9600
+BAUD_RATE = 115200
 
 current_location = ""
 current_BNO_data = ""
@@ -176,13 +176,16 @@ class bleServer:
         self.closeBluetoothSocket()
 
 
-
 def blueSvrWork():
     startLogging()
     bleSvr = bleServer()
     bleSvr.start()
     bleSvr.receive()
     bleSvr.stop()
+
+
+def current_milli_time():
+    return round(time.time() * 1000)
 
 if __name__ == '__main__':
     x = threading.Thread(target=blueSvrWork)
@@ -196,12 +199,18 @@ if __name__ == '__main__':
 
     outfile = open("trail" + str(current_time) + '.csv', 'w')
     try:
+        # Print header for csv
+        print("time,", bno.get_csv_header(), ", latitude, longitude", file=outfile)
+        delay_ms = 10 # 10 ms = 100hz
+        time_old = current_milli_time()
         while(True):
-            time.sleep(0.01)
-            t = time.localtime()
-            current_time = time.strftime("%H:%M:%S", t)
-            print(current_time + " Most Recent BNO Data " + bno.get_csv_line() + " Most Recent GPS Data " + current_location)
-            print(current_time, "," , bno.get_csv_line(), ",", current_location, file=outfile)
+            cur_time = current_milli_time()
+            if (cur_time - time_old >= delay_ms):
+                time_old = cur_time
+                t = time.localtime()
+                current_time = time.strftime("%H:%M:%S", t)
+                print(current_time + " Most Recent BNO Data " + bno.get_csv_line() + " Most Recent GPS Data " + current_location)
+                print(current_time, ",", bno.get_csv_line(), ",", current_location, file=outfile)
     except KeyboardInterrupt:
         #print("Keyboard Interrupt debug 1")
         outfile.close()
