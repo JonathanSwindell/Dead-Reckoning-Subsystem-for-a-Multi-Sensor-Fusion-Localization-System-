@@ -34,6 +34,7 @@ class BNO055Interface(threading.Thread):
         self.gyro = "g,g,g"
         self.mag = "m,m,m"
         self.quat = "q,q,q,q"
+        self.absAccel = "abs, abs, abs" # Absolute acceleration from BNO library. This is linear acceleration that has been adjusted by the rotation
 
     def run(self):
         while not self.stop_event.is_set():
@@ -53,12 +54,15 @@ class BNO055Interface(threading.Thread):
                 elif "Q:" in serialString:
                     with self.csv_lock:
                         self.quat = serialString[2:]
-                elif "L:" in serialString:
+                elif "La:" in serialString:
                     with self.csv_lock:
-                        self.linAccel = serialString[2:]
+                        self.linAccel = serialString[3:]
                 elif "E:" in serialString:
                     with self.csv_lock:
                         self.euler = serialString[2:]
+                elif "Aa:" in serialString:
+                    with self.csv_lock:
+                        self.absAccel = serialString[3:]
                 # Write contents to output
                 try:
                     with self.logging_lock:
@@ -93,10 +97,10 @@ class BNO055Interface(threading.Thread):
 
     def get_csv_line(self):
         with self.csv_lock:
-            return self.mag + "," + self.gyro + "," + self.quat + "," + self.linAccel + "," + self.euler
+            return self.mag + "," + self.gyro + "," + self.quat + "," + self.linAccel + "," + self.euler + "," + self.absAccel
 
     def get_csv_header(self):
-        return "mag x, mag y, mag z, gyro x, gyro y, gyro z, quat x, quat y, quat z, quat w, linAcc x, linAcc y, linAcc z, Euler x, Euler y, Euler z"
+        return "mag x, mag y, mag z, gyro x, gyro y, gyro z, quat x, quat y, quat z, quat w, linAcc x, linAcc y, linAcc z, Euler x, Euler y, Euler z, AbsAcc x, AbsAcc y, AbsAcc z"
 
     def reset_deadreck(self):
         print("Resetting the dead reckoning!")
