@@ -53,6 +53,7 @@ void loop(){
 
 
     myBNO.readCalibrationStatus();
+    /*
     Serial.print("Calibration\nSystem Status ");
     Serial.println(myBNO.sysSta);
 
@@ -64,18 +65,19 @@ void loop(){
 
     Serial.print("magSta Status ");
     Serial.println(myBNO.magSta);
-
+  */
     //Add some control
 
     if ((millis()- lastTime) > SERIAL_RATE_DELAY) {
       lastTime = millis();
+      Serial.print("C:"); Serial.print(myBNO.sysSta); Serial.print(", "); Serial.print(myBNO.gyroSta);  Serial.print(", ");Serial.print(myBNO.accelSta); Serial.print(", "); Serial.println(myBNO.magSta);
       Serial.print("Lo:"); Serial.print(myBNO.position.x); Serial.print(", "); Serial.print(myBNO.position.y); Serial.print(", "); Serial.println(myBNO.position.z);
       Serial.print("M:"); Serial.print(myBNO.mag.x); Serial.print(", "); Serial.print(myBNO.mag.y); Serial.print(", "); Serial.println(myBNO.mag.z);
       Serial.print("G:"); Serial.print(myBNO.gyro.x); Serial.print(", "); Serial.print(myBNO.gyro.y); Serial.print(", "); Serial.println(myBNO.gyro.z);
       Serial.print("Q:"); Serial.print(myBNO.quat.q0); Serial.print(", "); Serial.print(myBNO.quat.q1); Serial.print(", "); Serial.print(myBNO.quat.q2); Serial.print(", "); Serial.println(myBNO.quat.q3);
       Serial.print("E:"); Serial.print(myBNO.euler.x); Serial.print(", "); Serial.print(myBNO.euler.y); Serial.print(", "); Serial.println(myBNO.euler.z);
-      Serial.print("La:"); Serial.print(myBNO.linAcc.x); Serial.print(", "); Serial.print(myBNO.linAcc.y); Serial.print(", "); Serial.println(myBNO.linAcc.z);
-      Serial.print("Aa:"); Serial.print(myBNO.absAccel.x); Serial.print(", "); Serial.print(myBNO.absAccel.y); Serial.print(", "); Serial.println(myBNO.absAccel.z);
+      Serial.print("La:"); Serial.print(myBNO.linAcc.x*0.00981); Serial.print(", "); Serial.print(myBNO.linAcc.y*0.00981); Serial.print(", "); Serial.println(myBNO.linAcc.z*0.00981);
+      Serial.print("Aa:"); Serial.print(myBNO.absAccel.x*0.00981); Serial.print(", "); Serial.print(myBNO.absAccel.y*0.00981); Serial.print(", "); Serial.println(myBNO.absAccel.z*0.00981);
 
       
     }

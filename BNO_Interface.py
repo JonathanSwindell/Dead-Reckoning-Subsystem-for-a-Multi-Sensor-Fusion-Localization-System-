@@ -29,6 +29,8 @@ class BNO055Interface(threading.Thread):
         self.stop_event = threading.Event()
         self.csv_lock = threading.Lock()
 
+        self.calibration = "Ss, Gy, Acc, Mag"
+        self.position = "px,py,pz"
         self.euler = "e,e,e"
         self.linAccel = "la,la,la"
         self.gyro = "g,g,g"
@@ -44,26 +46,32 @@ class BNO055Interface(threading.Thread):
             elif self.serialPort.in_waiting > 0:
                 # Read data out of the buffer until a carraige return / new line is found
                 serialString = str(self.serialPort.readline().strip().decode('ascii'))
-                # print(serialString)
+                if "C:" in serialString:
+                    #with self.csv_lock:
+                    self.calibration = serialString[2:]
+                if "Lo:" in serialString:
+                    #with self.csv_lock:
+                    self.position = serialString[3:]
                 if "M:" in serialString:
-                    with self.csv_lock:
-                        self.mag = serialString[2:]
+                    #with self.csv_lock:
+                    self.mag = serialString[2:]
                 elif "G:" in serialString:
-                    with self.csv_lock:
-                        self.gyro = serialString[2:]
+                    #with self.csv_lock:
+                    self.gyro = serialString[2:]
                 elif "Q:" in serialString:
-                    with self.csv_lock:
-                        self.quat = serialString[2:]
+                    #with self.csv_lock:
+                    self.quat = serialString[2:]
                 elif "La:" in serialString:
-                    with self.csv_lock:
-                        self.linAccel = serialString[3:]
+                    #with self.csv_lock:
+                    self.linAccel = serialString[3:]
                 elif "E:" in serialString:
-                    with self.csv_lock:
-                        self.euler = serialString[2:]
+                    #with self.csv_lock:
+                    self.euler = serialString[2:]
                 elif "Aa:" in serialString:
-                    with self.csv_lock:
-                        self.absAccel = serialString[3:]
+                    #with self.csv_lock:
+                    self.absAccel = serialString[3:]
                 # Write contents to output
+                '''
                 try:
                     with self.logging_lock:
                         if self.is_logging:
@@ -79,6 +87,7 @@ class BNO055Interface(threading.Thread):
 
                 except:
                     pass
+                '''
 
     def start_logging(self, filename):
         with self.logging_lock:
@@ -96,11 +105,11 @@ class BNO055Interface(threading.Thread):
         return self.xpos, self.ypos, self.zpos  # TODO: update xpos,ypos,zpos in run()
 
     def get_csv_line(self):
-        with self.csv_lock:
-            return self.mag + "," + self.gyro + "," + self.quat + "," + self.linAccel + "," + self.euler + "," + self.absAccel
+        #with self.csv_lock:
+        return self.calibration +"," + self.position + "," + self.mag + "," + self.gyro + "," + self.quat + "," + self.linAccel + "," + self.euler + "," + self.absAccel
 
     def get_csv_header(self):
-        return "mag x, mag y, mag z, gyro x, gyro y, gyro z, quat x, quat y, quat z, quat w, linAcc x, linAcc y, linAcc z, Euler x, Euler y, Euler z, AbsAcc x, AbsAcc y, AbsAcc z"
+        return "System Calibration, Gyro Cal, Accel Cal, Mag cal, Pos x, Pos y, Posz, mag x, mag y, mag z, gyro x, gyro y, gyro z, quat x, quat y, quat z, quat w, linAcc x, linAcc y, linAcc z, Euler x, Euler y, Euler z, AbsAcc x, AbsAcc y, AbsAcc z"
 
     def reset_deadreck(self):
         print("Resetting the dead reckoning!")
@@ -113,19 +122,40 @@ class BNO055Interface(threading.Thread):
     def __del__(self):
         self.stop()
 
+
+def current_milli_time():
+    return round(time.time() * 1000)
+
 def test_BNO055Interface():
     bno = BNO055Interface()
     bno.start()
     #bno.start_logging("test.csv")
-
+    current_time = time.strftime("%M_%d_%H_%M", time.localtime())
+    outfile = open("BNO" + str(current_time) + '.csv', 'w')
+    print("time,time,", bno.get_csv_header())
+    counter = 0
     try:
-        while True:
-            time.sleep(1)
-            print(bno.get_csv_line())
+
+        delay_ms = 10  # 10 ms = 100hz
+        time_old = current_milli_time()
+        while (True):
+            cur_time = current_milli_time()
+            current_time = time.strftime("%H:%M:%S", time.localtime())
+            #if (cur_time - time_old >= delay_ms):
+
+            print(current_time, ",",cur_time%100000, ",",bno.get_csv_line(), file=outfile)
+            counter = counter + 1
+            if counter == 100:
+                print(current_time, ",",cur_time%100000, ",",bno.get_csv_line())
+                counter = 0
+            cur_time2 = current_milli_time()
+            #time.sleep((delay_ms / 3.0) * 0.001)
+            time.sleep(delay_ms*0.001 - (cur_time2-cur_time)*0.001)
             #if input() == "r":
             #    bno.reset_deadreck()
     except KeyboardInterrupt:
         bno.stop_logging()
+        outfile.close()
         bno.stop()
         bno.join()
     finally:

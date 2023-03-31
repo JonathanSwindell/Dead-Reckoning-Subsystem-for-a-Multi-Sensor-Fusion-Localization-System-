@@ -193,27 +193,36 @@ if __name__ == '__main__':
     # y = threading.Thread(target=test_BNO055Interface)
     # y.start()
 
-    bno = BNO_Interface.BNO055Interface()
-    bno.start()
+    # bno = BNO_Interface.BNO055Interface()
+    # bno.start()
     current_time = time.strftime("%M_%d_%H_%M", time.localtime())
 
-    outfile = open("trail" + str(current_time) + '.csv', 'w')
+    outfile = open("GPS" + str(current_time) + '.csv', 'w')
     try:
         # Print header for csv
-        print("time,", bno.get_csv_header(), ", latitude, longitude", file=outfile)
+        print("starting!")
+        #print("time,", bno.get_csv_header(), ", latitude, longitude", file=outfile)
         delay_ms = 10 # 10 ms = 100hz
         time_old = current_milli_time()
         while(True):
             cur_time = current_milli_time()
-            if (cur_time - time_old >= delay_ms):
-                time_old = cur_time
+            #if (cur_time - time_old >= delay_ms):
+            if True:
+                #time_old = cur_time
                 t = time.localtime()
                 current_time = time.strftime("%H:%M:%S", t)
-                print(current_time + " Most Recent BNO Data " + bno.get_csv_line() + " Most Recent GPS Data " + current_location)
-                print(current_time, ",", bno.get_csv_line(), ",", current_location, file=outfile)
+                print(current_time, ",", cur_time%100000, ",", current_location, file=outfile)
+                #time.sleep((delay_ms/2.0)*0.001) # Give CPU cycles to other thread
+                cur_time2 = current_milli_time()
+                # time.sleep((delay_ms / 3.0) * 0.001)
+                time_to_delay = delay_ms * 0.001 - (cur_time2 - cur_time) * 0.001
+                if (time_to_delay > 0):
+                    time.sleep(time_to_delay)
+                #print(current_time + " Most Recent BNO Data " + bno.get_csv_line() + " Most Recent GPS Data " + current_location)
+                #print(current_time, ",", bno.get_csv_line(), ",", current_location, file=outfile)
     except KeyboardInterrupt:
         #print("Keyboard Interrupt debug 1")
         outfile.close()
-        x.join()
+        #x.join()
         #print("Keyboard Interrupt debug 2")
-        bno.stop()
+        #bno.stop()
