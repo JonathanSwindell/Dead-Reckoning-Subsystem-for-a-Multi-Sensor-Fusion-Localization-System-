@@ -1,0 +1,14 @@
+Links 
+
+Rospy Beginner Tutorial: http://wiki.ros.org/rospy_tutorials/Tutorials/WritingPublisherSubscriber
+
+Install ROS for Ubuntu: http://wiki.ros.org/Installation/Ubuntu
+
+Fix potential error when installing: https://askubuntu.com/questions/1378869/dependency-issue
+
+Use Catkin: http://wiki.ros.org/catkin/Tutorials/using_a_workspace
+
+Catkin Workspace: https://answers.ros.org/question/221538/the-specified-base-path-homeruicatkin_ws-contains-a-package-but-catkin_make-must-be-invoked-in-the-root-of-workspace-how-can-i-fix-it/
+
+Install pybluez for linux: 	https://github.com/pybluez/pybluez/issues/236
+				

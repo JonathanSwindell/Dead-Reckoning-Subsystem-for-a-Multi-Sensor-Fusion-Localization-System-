@@ -2,7 +2,7 @@ import serial
 import threading
 import time
 
-BNO_PORT = "COM4"
+BNO_PORT = "/dev/ttyS4"
 
 
 class BNO055Interface(threading.Thread):
@@ -150,7 +150,9 @@ def test_BNO055Interface():
                 counter = 0
             cur_time2 = current_milli_time()
             #time.sleep((delay_ms / 3.0) * 0.001)
-            time.sleep(delay_ms*0.001 - (cur_time2-cur_time)*0.001)
+            time_to_delay = delay_ms*0.001 - (cur_time2-cur_time)*0.001
+            if (time_to_delay > 0):
+                time.sleep(time_to_delay)
             #if input() == "r":
             #    bno.reset_deadreck()
     except KeyboardInterrupt:

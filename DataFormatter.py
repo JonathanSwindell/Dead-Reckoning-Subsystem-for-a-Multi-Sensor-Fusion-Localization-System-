@@ -41,5 +41,5 @@ def format_data(bno_data, gps_data, out_file):
 
 
 if __name__ == "__main__":
-    format_data("BNO_2nd_loop.csv","GPS_2nd_loop.csv", "2nd_loop_lot_combined.csv")
+    format_data("April3BNOCampusLoop.csv","April3GPSCampusLoop.csv", "April3CombinedCampusLoop.csv")
     #format_data("BNO_parking_lot.csv","GPS_parking_lot.csv", "parking_lot_combined.csv")

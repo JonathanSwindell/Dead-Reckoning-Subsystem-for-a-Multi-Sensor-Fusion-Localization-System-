@@ -1,4 +1,5 @@
 import math
+import csv
 
 def sphere_m_to_longlat(dx,dy,long0,lat0): # X is N/S, Y is E/W.
     r = 6_731_000 # meters
@@ -84,8 +85,26 @@ def test_longlat_to_meters():
     print("WSG-84", meters_to_longlat(dx, dy, -86.638030, 34.730449))
     print("sphere", sphere_m_to_longlat(dx, dy, -86.638030, 34.730449))
 
+def open_csv():
+    f_lot = "parking_lot_combined.csv"
+    f_loop = "2nd_loop_lot_combined.csv"
+    apr3_loop = "April3CombinedCampusLoop.csv"
+    with open(apr3_loop) as bno_csv:
+        bno_csv_reader = csv.reader(bno_csv, delimiter=',')
+        next(bno_csv_reader) # get rid of header
+        row1 = next(bno_csv_reader)
+        lat0 = float(row1[28])
+        long0= float(row1[29])
+        for row in bno_csv_reader:
+            posx = float(row[6])
+            posy = float(row[7])
+            posz = float(row[8])
+            #print(posx, posy, meters_to_longlat(posy,posx,long0,lat0)) # correct
+            print(posx, posy, meters_to_longlat(posx,posy,long0,lat0)) # correct
+
 
 
 
 if __name__ == "__main__":
-    test_longlat_to_meters()
+    open_csv() #28,29
+    #test_longlat_to_meters()
