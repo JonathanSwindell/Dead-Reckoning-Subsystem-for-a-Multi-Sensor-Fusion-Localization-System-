@@ -24,7 +24,6 @@ void setup(){
     myBNO.init();
 }
 
-
 void loop(){
     static unsigned long lastTime = 0;
 
@@ -49,28 +48,11 @@ void loop(){
     myBNO.readEul();
     myBNO.readLinAcc();
     myBNO.readAbsAcc();
-
-
-
     myBNO.readCalibrationStatus();
-    /*
-    Serial.print("Calibration\nSystem Status ");
-    Serial.println(myBNO.sysSta);
-
-    Serial.print("gyro Status ");
-    Serial.println(myBNO.gyroSta);
-
-    Serial.print("accelSta Status ");
-    Serial.println(myBNO.accelSta);
-
-    Serial.print("magSta Status ");
-    Serial.println(myBNO.magSta);
-  */
-    //Add some control
 
     if ((millis()- lastTime) > SERIAL_RATE_DELAY) {
       lastTime = millis();
-      Serial.print("C:"); Serial.print(myBNO.sysSta); Serial.print(", "); Serial.print(myBNO.gyroSta);  Serial.print(", ");Serial.print(myBNO.accelSta); Serial.print(", "); Serial.println(myBNO.magSta);
+      Serial.print("C:"); Serial.print(myBNO.calibration.sysSta); Serial.print(", "); Serial.print(myBNO.calibration.gyroSta);  Serial.print(", ");Serial.print(myBNO.calibration.accelSta); Serial.print(", "); Serial.println(myBNO.calibration.magSta);
       Serial.print("Lo:"); Serial.print(myBNO.position.x); Serial.print(", "); Serial.print(myBNO.position.y); Serial.print(", "); Serial.println(myBNO.position.z);
       Serial.print("M:"); Serial.print(myBNO.mag.x); Serial.print(", "); Serial.print(myBNO.mag.y); Serial.print(", "); Serial.println(myBNO.mag.z);
       Serial.print("G:"); Serial.print(myBNO.gyro.x); Serial.print(", "); Serial.print(myBNO.gyro.y); Serial.print(", "); Serial.println(myBNO.gyro.z);

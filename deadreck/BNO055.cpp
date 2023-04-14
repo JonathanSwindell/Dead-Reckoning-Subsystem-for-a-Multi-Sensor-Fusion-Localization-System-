@@ -329,16 +329,8 @@ void BNO055::readCalibrationStatus(){
         uint8_t rawData[2];
         
         readBytes(BNO055_ADDRESS, BNO055_CALIB_STAT, 1, &rawData[0]);
-        sysSta = ((rawData[0] & BNO055_SYS_CALIB_STAT__MSK) >> BNO055_SYS_CALIB_STAT__POS);
-        gyroSta = ((rawData[0] & BNO055_GYR_CALIB_STAT__MSK) >> BNO055_GYR_CALIB_STAT__POS);
-        accelSta = ((rawData[0] & BNO055_ACC_CALIB_STAT__MSK) >> BNO055_ACC_CALIB_STAT__POS);
-        magSta = ((rawData[0] & BNO055_MAG_CALIB_STAT__MSK) >> BNO055_MAG_CALIB_STAT__POS);
-
-//    Calibration Value Key:
-//        0 "uncalibrated"  Sensor is uncalibrated
-//        1 "partial" Sensor is partially calibrated
-//        2 "partial" Sensor is partially calibrated
-//        3 "full"  Sensor is fully calibrated
-
-       
+        calibration.sysSta = (calibrationStatus) ((rawData[0] & BNO055_SYS_CALIB_STAT__MSK) >> BNO055_SYS_CALIB_STAT__POS);
+        calibration.gyroSta = (calibrationStatus) ((rawData[0] & BNO055_GYR_CALIB_STAT__MSK) >> BNO055_GYR_CALIB_STAT__POS);
+        calibration.accelSta = (calibrationStatus) ((rawData[0] & BNO055_ACC_CALIB_STAT__MSK) >> BNO055_ACC_CALIB_STAT__POS);
+        calibration.magSta = (calibrationStatus) ((rawData[0] & BNO055_MAG_CALIB_STAT__MSK) >> BNO055_MAG_CALIB_STAT__POS);
 }

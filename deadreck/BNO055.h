@@ -170,7 +170,12 @@ class BNO055{
     void resetDeadReckoning();
 		void readTemp();
 
-		
+    enum calibrationStatus {   
+        uncalibrated = 0, 
+        partialLevel1 = 1, 
+        partialLevel2 = 2,
+        calibrated = 3
+    };
 
 		typedef struct {
 		 	int16_t intX, intY, intZ;
@@ -241,12 +246,14 @@ class BNO055{
 
 		Temp temp;
 
-    uint8_t sysSta;
-    uint8_t gyroSta;
-    uint8_t accelSta;
-    uint8_t magSta;
+    typedef struct {
+      calibrationStatus sysSta;
+      calibrationStatus gyroSta;
+      calibrationStatus accelSta;
+      calibrationStatus magSta;
+    } Calibration;
 
-
+    Calibration calibration;
 
 
 	private:
