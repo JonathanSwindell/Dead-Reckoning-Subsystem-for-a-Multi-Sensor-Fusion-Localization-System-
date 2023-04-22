@@ -2,7 +2,7 @@ import serial
 import threading
 import time
 
-BNO_PORT = "/dev/ttyS4"
+BNO_PORT = "COM4"
 
 
 class BNO055Interface(threading.Thread):

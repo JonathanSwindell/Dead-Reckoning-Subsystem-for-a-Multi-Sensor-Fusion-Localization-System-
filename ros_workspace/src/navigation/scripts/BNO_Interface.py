@@ -8,18 +8,33 @@ import time
 from std_msgs.msg import String
 from navigation.msg import bno
 from navigation.msg import gps
+from navigation.msg import reset
 
-BNO_MESSAGE_RATE = 100 # In hz
-BNO_PORT = "/dev/ttyS4"
+BNO_MESSAGE_RATE = 150 # In hz
+BNO_PORT = "/dev/ttyACM0"
 
+def reset_bno(event): # Resets the dead reckoning on the BNO board.
+    rospy.loginfo("Recieved message to reset the bno")
+    if serialPort is not None:  
+        rospy.loginfo("sending reset")
+        serialPort.write("r\n".encode())
+
+  
 def bno_interface():
     bno_publisher = rospy.Publisher('bno_data', bno, queue_size=10)
     rospy.init_node('BNO_Interface', anonymous=True)
     rate = rospy.Rate(BNO_MESSAGE_RATE)
+    global serialPort
     serialPort = None
+    
+    global readingPort
+    readingPort = False
+    # Setup listener for stop event
+    rospy.Subscriber('reset_bno', reset, reset_bno)
     try:
         serialPort = serial.Serial(port=BNO_PORT, baudrate=115200)
-    except:
+    except Exception as e:
+        print(e)
         print("Error in BNO055Interface. Unable to open serialPort")
     while not rospy.is_shutdown():
         # Collect BNO Data, and then publish it.
@@ -30,18 +45,23 @@ def bno_interface():
                 print("No serial port")
         else:
             while msg_count < 8:
+            
                 # Read data out of the buffer until a carraige return / new line is found
                 while (serialPort.in_waiting <= 0):
                     pass
-                
+                readingPort = True
                 serialString = str(serialPort.readline().strip().decode('ascii'))
+                #rospy.loginfo(serialString)
                 if "C:" in serialString:
                     #rospy.loginfo("C")
-                    calibration = serialString[2:].split(',')
-                    bno_msg.SystemCal = int(calibration[0])
-                    bno_msg.GyroCal = int(calibration[1])
-                    bno_msg.AccelCal = int(calibration[2])
-                    bno_msg.MagCal = int(calibration[3])
+                    try:
+                        calibration = serialString[2:].split(',')
+                        bno_msg.SystemCal = int(calibration[0])
+                        bno_msg.GyroCal = int(calibration[1])
+                        bno_msg.AccelCal = int(calibration[2])
+                        bno_msg.MagCal = int(calibration[3])
+                    except:
+                        rospy.logwarn("Issue idk")
                 elif "Lo:" in serialString:
                     #rospy.loginfo("Lo")
                     position = serialString[3:].split(',')
@@ -86,13 +106,14 @@ def bno_interface():
                     bno_msg.AbsAccY = float(absAccel[1])
                     bno_msg.AbsAccZ = float(absAccel[2])
                 msg_count += 1
+            readingPort = False
             msg_count = 0
             # Publish the message
             bno_msg.time_str = current_time = time.strftime("%M_%d_%H_%M", time.localtime())
             bno_msg.time_int = round(time.time() * 1000) # In ms
             bno_publisher.publish(bno_msg)
             # rospy.loginfo("sending message")
-            #rate.sleep()    # Might have an issue here getting all of the messages. Given that
+            rate.sleep()    # Might have an issue here getting all of the messages. Given that
                             # The inner while loop waits for messages, having this node also
                             # sleep might be unnesarry
 

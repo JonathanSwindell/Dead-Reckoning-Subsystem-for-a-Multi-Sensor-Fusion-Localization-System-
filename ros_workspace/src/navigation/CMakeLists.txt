@@ -50,7 +50,8 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
     FILES
     bno.msg
-	gps.msg
+    gps.msg
+    reset.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -109,7 +110,7 @@ catkin_package(
 #  DEPENDS system_lib
 )
 
-catkin_install_python(PROGRAMS scripts/BNO_Interface.py scripts/listener.py scripts/GPS_Bluetooth.py
+catkin_install_python(PROGRAMS scripts/BNO_Interface.py scripts/listener.py scripts/GPS_Bluetooth.py scripts/LongLatConversions.py scripts/runfm.py scripts/reset_dr.py
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

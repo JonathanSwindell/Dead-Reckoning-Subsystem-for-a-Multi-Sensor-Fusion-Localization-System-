@@ -6,3 +6,4 @@ __pycahce__/*
 /ros_workspace/devel*
 /ros_workspace/.catkin_workspace
 /ros_workspace/src/CMakeLists.txt
+*.xlsx

@@ -1,5 +1,4 @@
 <launch>
     <node pkg="navigation" type="BNO_Interface.py" name="BNO_Interface" output="screen"></node>
-    <node pkg="navigation" type="GPS_Bluetooth.py" name="GPS_Bluetooth" output="screen"></node>
     <node pkg="navigation" type="listener.py" name="listener" output="screen"></node>
 </launch>

@@ -1,0 +1,3 @@
+<launch>
+    <node pkg="navigation" type="runfm.py" name="runfm" output="screen"></node>
+</launch>
