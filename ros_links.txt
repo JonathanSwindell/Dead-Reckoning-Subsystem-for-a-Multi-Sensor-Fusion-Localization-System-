@@ -12,3 +12,9 @@ Catkin Workspace: https://answers.ros.org/question/221538/the-specified-base-pat
 
 Install pybluez for linux: 	https://github.com/pybluez/pybluez/issues/236
 				
+				
+				
+IF Bluetooth error:
+run: "sudo chmod +777 /var/run/sdp"
+also here: sudo hciconfig hci0 piscan
+

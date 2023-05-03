@@ -29,9 +29,9 @@ void loop(){
 
     //Read input from PC
     if (stringComplete) {
-      Serial.print("Recived input: "); Serial.print(inputCommand);
-      if (inputCommand == "r") {
-        Serial.println("Resetting Dead Reckoning!");
+      //Serial.print("Recived input: "); Serial.println(inputCommand);
+      if (inputCommand == "r\n") {
+        //Serial.println("Resetting Dead Reckoning!");
         myBNO.resetDeadReckoning();
       }
       // clear the string:
@@ -66,10 +66,7 @@ void loop(){
 }
 
 void serialEvent() {
-  Serial.print("in serial event.");
-  
   while (Serial.available()) {
-      Serial.print("in serial while.");
 
     // get the new byte:
     char inChar = (char)Serial.read();
@@ -77,9 +74,8 @@ void serialEvent() {
     inputCommand += inChar;
     // if the incoming character is a newline, set a flag so the main loop can
     // do something about it:
-  Serial.print((int)inChar);
     
-    if (inChar == 'r') {
+    if (inChar == '\n') {
       stringComplete = true;
     }
   }

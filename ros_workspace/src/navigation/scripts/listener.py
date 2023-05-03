@@ -24,13 +24,19 @@ def copy_bno_data(msg_dst, msg_src):
     msg_dst.MagX = msg_src.MagX
     msg_dst.MagY = msg_src.MagY
     msg_dst.MagZ = msg_src.MagZ
+    msg_dst.LinAccX = msg_src.LinAccX
+    msg_dst.LinAccY = msg_src.LinAccY
+    msg_dst.LinAccZ = msg_src.LinAccZ
+    msg_dst.AbsAccX = msg_src.AbsAccX
+    msg_dst.AbsAccY = msg_src.AbsAccY
+    msg_dst.AbsAccZ = msg_src.AbsAccZ
     
 def copy_gps_data(msg_dst, msg_src):
     msg_dst.lat = msg_src.lat
     msg_dst.lon = msg_src.lon
     
 def f2s(x): # Convert float to string and set precision
-    return '{:0.2f}'.format(x)
+    return '{:0.9f}'.format(x)
     
 def callback(data):
     rospy.loginfo(rospy.get_caller_id() + 'I heard %s', data.data)
@@ -72,10 +78,10 @@ def listener():
     current_time = time.strftime("%M_%d_%H_%M", time.localtime())
     outfile = open("/home/ubuntu/Desktop/navigation_log" + str(current_time) + '.csv', 'w')
     out_csv_writer = csv.writer(outfile, delimiter=',')
-    out_csv_writer.writerow(["Time (ms)", " Time", "GPS Lat", "GPS Lon", "Pos x", "Pos y", "Pos z", "Sys Cal", "Gyro Cal", "Accel Cal", "Mag Cal"]) # Write header
+    out_csv_writer.writerow(["Time (ms)", " Time", "GPS Lat", "GPS Lon", "Pos x", "Pos y", "Pos z", "Sys Cal", "Gyro Cal", "Accel Cal", "Mag Cal", "Mag X", "Mag Y", "Mag Z", "Lin Acc X", "Lin Acc Y", "Lin Acc Z"]) # Write header
     while not rospy.is_shutdown():
         # Write to CSV
-        out_csv_writer.writerow([str(round(rospy.get_time() * 1000) - start_time), bno_msg_global.time_str, f2s(gps_msg_global.lat), f2s(gps_msg_global.lon), f2s(bno_msg_global.PosX), f2s(bno_msg_global.PosY), f2s(bno_msg_global.PosZ), bno_msg_global.SystemCal, bno_msg_global.GyroCal, bno_msg_global.AccelCal, bno_msg_global.MagCal, f2s(bno_msg_global.MagX), f2s(bno_msg_global.MagY), f2s(bno_msg_global.MagZ)])
+        out_csv_writer.writerow([str(round(rospy.get_time() * 1000) - start_time), bno_msg_global.time_str, f2s(gps_msg_global.lat), f2s(gps_msg_global.lon), f2s(bno_msg_global.PosX), f2s(bno_msg_global.PosY), f2s(bno_msg_global.PosZ), bno_msg_global.SystemCal, bno_msg_global.GyroCal, bno_msg_global.AccelCal, bno_msg_global.MagCal, f2s(bno_msg_global.MagX), f2s(bno_msg_global.MagY), f2s(bno_msg_global.MagZ), f2s(bno_msg_global.LinAccX), f2s(bno_msg_global.LinAccY), f2s(bno_msg_global.LinAccZ)]), 
         rate.sleep()
     	#test_msg = reset()
     	#test_msg.newLat = 0.0;

@@ -193,7 +193,7 @@ void BNO055::resetDeadReckoning() {
     pYOld = 0.0; 
     pZOld = 0.0;
     noAccCount=0;  
-    timeOldDeadReckoning=0;
+    timeOldDeadReckoning=millis();
 }
 void BNO055::deadReckoning(int mode){
     float aX=0,aY=0,aZ=0;
