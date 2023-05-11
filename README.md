@@ -1,5 +1,5 @@
 # Dead Reckoning Subsystem
-This dead reckoning system is one part of a multi-sensor fusion GPS-denied localization system implemented at the University of Alabama in Huntsville as a Senior Design Project in 2023.
+This dead reckoning system is one part of a multi-sensor fusion GPS-denied localization system implemented at the University of Alabama in Huntsville as a Senior Design Project in 2023. The dead reckoning subsystem communicates with other subsystems using ROS.
 
 
 ## Arduino
