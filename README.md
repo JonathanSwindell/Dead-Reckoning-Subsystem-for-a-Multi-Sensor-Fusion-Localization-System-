@@ -1,4 +1,6 @@
-# DeadReckoning
+# Dead Reckoning
+This dead reckoning system is one part of a multi-sensor fusion GPS-denied localization system implemented at the University of Alabama in Huntsville as a Senior Design Project in 2023.
+
 
 ## Arduino
 
